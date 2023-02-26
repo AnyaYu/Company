@@ -2,6 +2,7 @@ package com.yushina.entities;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ public class Employee {
     private String fullName;
 
     @Column(nullable = false)
-    private String birthday;
+    private LocalDate birthday;
 
     @ElementCollection
     private List<String> hobbies;
@@ -49,11 +50,11 @@ public class Employee {
         this.fullName = fullName;
     }
 
-    public String getBirthday() {
+    public LocalDate getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(String birthday) {
+    public void setBirthday(LocalDate birthday) {
         this.birthday = birthday;
     }
 

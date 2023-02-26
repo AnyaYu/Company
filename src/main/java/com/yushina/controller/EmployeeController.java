@@ -26,9 +26,6 @@ public class EmployeeController {
     @GetMapping
     public ResponseEntity<List<Employee>> getAllEmployees() {
         List<Employee> employees = employeeService.getAllEmployees();
-        if (employees == null || employees.size() == 0) {
-            new ResponseEntity<>("There are no employees in the data source", HttpStatus.OK);
-        }
         return new ResponseEntity<>(employees, HttpStatus.OK);
     }
 
@@ -44,21 +41,12 @@ public class EmployeeController {
     @PutMapping("/{id}")
     public ResponseEntity<Object> updateEmployee(@PathVariable("id") UUID id, @RequestBody Employee employee) {
         Employee updatedEmployee = employeeService.updateEmployee(id, employee);
-        if (updatedEmployee == null) {
-            return new ResponseEntity<>(String.format("Employee with id = %s does not exist", id), HttpStatus.NO_CONTENT);
-        }
         return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteEmployee(@PathVariable("id") String id) {
-        //TODO validate id
-        Employee employee = employeeService.getEmployeeById(UUID.fromString(id)).orElse(null);
-
-        if (employee == null) {
-            return new ResponseEntity<>(String.format("Employee with id = %s does not exist", id), HttpStatus.NOT_FOUND);
-        }
-        employeeService.deleteEmployee(employee);
+    public ResponseEntity<String> deleteEmployee(@PathVariable("id") UUID id){
+        employeeService.deleteEmployee(id);
         return new ResponseEntity<>(String.format("Employee with id = %s is deleted", id), HttpStatus.NO_CONTENT);
     }
 }
