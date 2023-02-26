@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,14 +31,17 @@ public class EmployeeService {
         return employeeRepository.findAll();
     }
 
-    public Optional<Employee> getEmployeeById(UUID id) {
-        return employeeRepository.findById(id);
+    public Employee getEmployeeById(UUID id) {
+        Employee employee = employeeRepository.findById(id).orElse(null);
+        if (employee == null) {
+            throw new EmployeeException(String.format("Employee with id = %s does not exist", id), HttpStatus.NO_CONTENT);
+        }
+        return employee;
     }
 
     public Employee updateEmployee(UUID id, Employee employee1) {
         ValidationUtils.validateEmployee(employee1);
-        Employee employee = getEmployeeById(id).orElse(null);
-        if (employee == null) throw new EmployeeException(String.format("Employee with id = %s does not exist", id), HttpStatus.NO_CONTENT);
+        Employee employee = getEmployeeById(id);
         employee.updateEmployee(employee1);
         Employee savedEmployee = employeeRepository.save(employee);
         kafkaService.sendKafkaMessage("employee_updated", savedEmployee);
@@ -47,10 +49,8 @@ public class EmployeeService {
     }
 
     public void deleteEmployee(UUID id) {
-        Employee employee = getEmployeeById(id).orElse(null);
-        if (employee != null) {
-            employeeRepository.delete(employee);
-            kafkaService.sendKafkaMessage("employee_deleted", employee);
-        } else throw new EmployeeException(String.format("Employee with id = %s does not exist", id), HttpStatus.NOT_FOUND);
+        Employee employee = getEmployeeById(id);
+        employeeRepository.delete(employee);
+        kafkaService.sendKafkaMessage("employee_deleted", employee);
     }
 }
