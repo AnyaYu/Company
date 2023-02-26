@@ -14,11 +14,16 @@ public class ExceptionHandlerController {
         return ResponseEntity.status(ex.getErrorCode()).body(ex.getMessage());
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleException(DataIntegrityViolationException ex) {
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
         if (ex.getMessage().contains("Email") || ex.getMessage().contains("EMAIL")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please specify a unique email address for the employee");
         }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleException(Exception ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }
