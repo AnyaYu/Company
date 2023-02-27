@@ -21,7 +21,7 @@ public class ExceptionHandlerController {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        if (ex.getMessage().toLowerCase().contains("email")) {
+        if (ex.getMessage().toLowerCase().contains("email") || ex.getMostSpecificCause().getMessage().toLowerCase().contains("email")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please specify a unique email address for the employee");
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
