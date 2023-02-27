@@ -1,6 +1,7 @@
 package com.yushina.validation;
 
 import com.yushina.Exception.EmployeeException;
+import com.yushina.Exception.EmployeeValidationException;
 import com.yushina.entities.Employee;
 import org.springframework.http.HttpStatus;
 
@@ -10,13 +11,13 @@ public class ValidationUtils {
 
     public static void validateEmployee(Employee employee) {
         if (employee.getBirthday() == null) {
-            throw new EmployeeException("Please specify employee's birthday in the following format: yyyy-mm-dd", HttpStatus.BAD_REQUEST);
+            throw new EmployeeValidationException("Please specify employee's birthday in the following format: yyyy-mm-dd");
         }
         if (employee.getEmail() == null || !isValidEmail(employee.getEmail())) {
-            throw new EmployeeException("Please specify a valid employee's email", HttpStatus.BAD_REQUEST);
+            throw new EmployeeValidationException("Please specify a valid employee's email");
         }
         if (employee.getFullName() == null) {
-            throw new EmployeeException("Please specify employee's full name", HttpStatus.BAD_REQUEST);
+            throw new EmployeeValidationException("Please specify employee's full name");
         }
     }
 

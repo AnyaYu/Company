@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ExceptionHandlerController {
 
+    @ExceptionHandler(EmployeeValidationException.class)
+    public ResponseEntity<String> handleException(EmployeeValidationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
     @ExceptionHandler(EmployeeException.class)
     public ResponseEntity<String> handleException(EmployeeException ex) {
         return ResponseEntity.status(ex.getErrorCode()).body(ex.getMessage());
@@ -16,7 +21,7 @@ public class ExceptionHandlerController {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        if (ex.getMessage().contains("Email") || ex.getMessage().contains("EMAIL")) {
+        if (ex.getMessage().toLowerCase().contains("email")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please specify a unique email address for the employee");
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
