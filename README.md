@@ -20,8 +20,8 @@ It will try to connect to a server in a separate thread. That should not affect 
 * Build and run the project: open com.yushina.CompanyApplication and run it
 * From there, you can view and test the API endpoints for managing employees.
 * Authentication: For demo purposes name=user and password=password
-* Please, use the following Postman collection **to test the App:** 
-* Swagger documentation is available here: http://localhost:port/swagger-ui/index.html
+* Please, use the following Postman collection **to test the App:** https://api.postman.com/collections/17010112-130b746a-b6d9-4e44-9f22-e0b525c04b04?access_key=PMAT-01GT95VEBQGZ7VEJ0QMR9YVH3R
+* **Swagger** documentation is available here: http://localhost:port/swagger-ui/index.html
 
 **API Endpoints**<br>
 The following API endpoints are available for managing employees:
