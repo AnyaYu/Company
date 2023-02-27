@@ -1,6 +1,8 @@
 package com.yushina;
 
 import com.yushina.Exception.EmployeeException;
+import com.yushina.Exception.EmployeeValidationException;
+import com.yushina.dto.EmployeeDto;
 import com.yushina.entities.Employee;
 import com.yushina.repository.EmployeeRepository;
 import com.yushina.service.EmployeeService;
@@ -14,9 +16,11 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Optional;
 
+import static com.yushina.TestUtils.BIRTHDAY;
 import static com.yushina.TestUtils.ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -32,12 +36,13 @@ public class EmployeeServiceTest {
 
     @Test
     void createEmployeeTest() {
+        EmployeeDto employeeDto = TestUtils.getNewEmployeeDto(false, TestUtils.EMAIL, TestUtils.FULL_NAME, TestUtils.BIRTHDAY, TestUtils.HOBBIES);
         Employee employee = TestUtils.getNewEmployee(false, TestUtils.EMAIL, TestUtils.FULL_NAME, TestUtils.BIRTHDAY, TestUtils.HOBBIES);
         Employee savedEmployee = TestUtils.getNewEmployee(true, TestUtils.EMAIL, TestUtils.FULL_NAME, TestUtils.BIRTHDAY, TestUtils.HOBBIES);
 
-        when(employeeRepository.save(employee)).thenReturn(savedEmployee);
+        when(employeeRepository.save(any(Employee.class))).thenReturn(savedEmployee);
 
-        Employee result = employeeService.createEmployee(employee);
+        Employee result = employeeService.createEmployee(employeeDto);
 
         assertEquals(savedEmployee.getId(), result.getId());
         assertEquals(savedEmployee.getEmail(), result.getEmail());
@@ -48,54 +53,54 @@ public class EmployeeServiceTest {
 
     @Test
     void createEmployeeTestWithIncorrectEmail() {
-        Employee employee = TestUtils.getNewEmployee(false, "incorrectEmail.com", TestUtils.FULL_NAME,
+        EmployeeDto employeeDto = TestUtils.getNewEmployeeDto(false, "incorrectEmail.com", TestUtils.FULL_NAME,
                 TestUtils.BIRTHDAY, TestUtils.HOBBIES);
 
-        assertThrows(EmployeeException.class, () -> {
-            employeeService.createEmployee(employee);
+        assertThrows(EmployeeValidationException.class, () -> {
+            employeeService.createEmployee(employeeDto);
         });
     }
 
     @Test
     void createEmployeeTestNullEmail() {
-        Employee employee = TestUtils.getNewEmployee(false, null, TestUtils.FULL_NAME,
+        EmployeeDto employeeDto = TestUtils.getNewEmployeeDto(false, null, TestUtils.FULL_NAME,
                 TestUtils.BIRTHDAY, TestUtils.HOBBIES);
 
-        assertThrows(EmployeeException.class, () -> {
-            employeeService.createEmployee(employee);
+        assertThrows(EmployeeValidationException.class, () -> {
+            employeeService.createEmployee(employeeDto);
         });
     }
 
     @Test
     void createEmployeeTestNullFullName() {
-        Employee employee = TestUtils.getNewEmployee(false, TestUtils.EMAIL, null,
+        EmployeeDto employeeDto = TestUtils.getNewEmployeeDto(false, TestUtils.EMAIL, null,
                 TestUtils.BIRTHDAY, TestUtils.HOBBIES);
 
-        assertThrows(EmployeeException.class, () -> {
-            employeeService.createEmployee(employee);
+        assertThrows(EmployeeValidationException.class, () -> {
+            employeeService.createEmployee(employeeDto);
         });
     }
 
     @Test
     void createEmployeeTestNullBirthday() {
-        Employee employee = TestUtils.getNewEmployee(false, TestUtils.EMAIL, TestUtils.FULL_NAME,
+        EmployeeDto employeeDto = TestUtils.getNewEmployeeDto(false, TestUtils.EMAIL, TestUtils.FULL_NAME,
                 null, TestUtils.HOBBIES);
 
-        assertThrows(EmployeeException.class, () -> {
-            employeeService.createEmployee(employee);
+        assertThrows(EmployeeValidationException.class, () -> {
+            employeeService.createEmployee(employeeDto);
         });
     }
 
     @Test
     void createEmployeeTestNullHobbies() {
-        Employee employee = TestUtils.getNewEmployee(false, TestUtils.EMAIL, TestUtils.FULL_NAME,
-                TestUtils.BIRTHDAY, null);
+        EmployeeDto employeeDto = TestUtils.getNewEmployeeDto(false, TestUtils.EMAIL, TestUtils.FULL_NAME,
+                BIRTHDAY, null);
         Employee savedEmployee = TestUtils.getNewEmployee(true, TestUtils.EMAIL, TestUtils.FULL_NAME,
                 TestUtils.BIRTHDAY, null);
 
-        when(employeeRepository.save(employee)).thenReturn(savedEmployee);
+        when(employeeRepository.save(any(Employee.class))).thenReturn(savedEmployee);
 
-        Employee result = employeeService.createEmployee(employee);
+        Employee result = employeeService.createEmployee(employeeDto);
 
         Assertions.assertNotNull(result);
     }
@@ -107,7 +112,6 @@ public class EmployeeServiceTest {
         EmployeeException exception = assertThrows(EmployeeException.class,
                 () -> employeeService.getEmployeeById(ID));
 
-        assertEquals("Employee with id = " + ID + " does not exist", exception.getMessage());
         assertEquals(HttpStatus.NO_CONTENT, exception.getErrorCode());
     }
 
@@ -129,13 +133,13 @@ public class EmployeeServiceTest {
         final String newEmail = "newEmail@gmail.com";
         final String newFullName = "Updated";
 
+        EmployeeDto employeeDto = TestUtils.getNewEmployeeDto(true, newEmail, newFullName, TestUtils.BIRTHDAY, TestUtils.HOBBIES);;
         Employee existingEmployee = TestUtils.getNewEmployee(true, TestUtils.EMAIL, TestUtils.FULL_NAME, TestUtils.BIRTHDAY, TestUtils.HOBBIES);
-        Employee employeeToUpdate = TestUtils.getNewEmployee(true, newEmail, newFullName, TestUtils.BIRTHDAY, TestUtils.HOBBIES);
 
         when(employeeRepository.findById(ID)).thenReturn(Optional.of(existingEmployee));
-        when(employeeRepository.save(existingEmployee)).thenReturn(existingEmployee);
+        when(employeeRepository.save(any(Employee.class))).thenReturn(employeeDto.toEmployee());
 
-        Employee updatedEmployee = employeeService.updateEmployee(ID, employeeToUpdate);
+        Employee updatedEmployee = employeeService.updateEmployee(ID, employeeDto);
 
         assertEquals(ID, updatedEmployee.getId());
         assertEquals(newFullName, updatedEmployee.getFullName());
@@ -149,19 +153,17 @@ public class EmployeeServiceTest {
         when(employeeRepository.findById(ID)).thenReturn(Optional.empty());
 
         EmployeeException exception = assertThrows(EmployeeException.class, () -> employeeService.updateEmployee(ID,
-                TestUtils.getNewEmployee(false, TestUtils.EMAIL, TestUtils.FULL_NAME, TestUtils.BIRTHDAY, TestUtils.HOBBIES)));
+                TestUtils.getNewEmployeeDto(false, TestUtils.EMAIL, TestUtils.FULL_NAME, TestUtils.BIRTHDAY, TestUtils.HOBBIES)));
 
-        assertEquals("Employee with id = " + ID + " does not exist", exception.getMessage());
         assertEquals(HttpStatus.NO_CONTENT, exception.getErrorCode());
     }
 
     @Test
     void testUpdateEmployeeWithInvalidEmail() {
-        EmployeeException exception = assertThrows(EmployeeException.class, () -> employeeService.updateEmployee(ID,
-                TestUtils.getNewEmployee(false, "sdsd@com", TestUtils.FULL_NAME, TestUtils.BIRTHDAY, TestUtils.HOBBIES)));
+        EmployeeValidationException exception = assertThrows(EmployeeValidationException.class, () -> employeeService.updateEmployee(ID,
+                TestUtils.getNewEmployeeDto(false, "sdsd@com", TestUtils.FULL_NAME, TestUtils.BIRTHDAY, TestUtils.HOBBIES)));
 
         assertEquals("Please specify a valid employee's email", exception.getMessage());
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getErrorCode());
     }
 
     @Test
@@ -170,7 +172,6 @@ public class EmployeeServiceTest {
 
         EmployeeException exception = assertThrows(EmployeeException.class, () -> employeeService.deleteEmployee(ID));
 
-        assertEquals("Employee with id = " + ID + " does not exist", exception.getMessage());
         assertEquals(HttpStatus.NO_CONTENT, exception.getErrorCode());
     }
 

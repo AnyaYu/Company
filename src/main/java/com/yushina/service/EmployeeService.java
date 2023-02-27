@@ -1,17 +1,21 @@
 package com.yushina.service;
 
 import com.yushina.Exception.EmployeeException;
+import com.yushina.dto.EmployeeDto;
 import com.yushina.entities.Employee;
 import com.yushina.repository.EmployeeRepository;
 import com.yushina.validation.ValidationUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class EmployeeService {
 
     @Autowired
@@ -20,37 +24,54 @@ public class EmployeeService {
     @Autowired
     private KafkaService kafkaService;
 
-    public Employee createEmployee(Employee employee) {
+    private static final String EMPLOYEE_DOES_NOT_EXIST = "Employee with id %s does not exist";
+
+    public Employee createEmployee(EmployeeDto employeeDto) {
+        Employee employee = employeeDto.toEmployee();
         ValidationUtils.validateEmployee(employee);
         Employee savedEmployee = employeeRepository.save(employee);
-        kafkaService.sendKafkaMessage("employee_created", employee);
+        kafkaService.sendKafkaMessage("employee_created", savedEmployee);
+        log.info("Employee was created: " + savedEmployee);
         return savedEmployee;
     }
 
     public List<Employee> getAllEmployees() {
+        log.info("Getting all employees");
         return employeeRepository.findAll();
     }
 
     public Employee getEmployeeById(UUID id) {
-        Employee employee = employeeRepository.findById(id).orElse(null);
-        if (employee == null) {
-            throw new EmployeeException(String.format("Employee with id = %s does not exist", id), HttpStatus.NO_CONTENT);
+        log.info("Looking for employee with id: " + id);
+        Optional<Employee> employee = employeeRepository.findById(id);
+        if (employee.isEmpty()) {
+            String info = String.format(EMPLOYEE_DOES_NOT_EXIST, id);
+            log.info(info);
+            throw new EmployeeException(info, HttpStatus.NO_CONTENT);
+        }
+        log.info("Employee found: " + employee);
+        return employee.get();
+    }
+
+    public Employee updateEmployee(UUID id, EmployeeDto employeeDto) {
+        Employee employeeWithNewData = employeeDto.toEmployee();
+        employeeWithNewData.setId(id);
+        ValidationUtils.validateEmployee(employeeWithNewData);
+        Employee employee = getEmployeeById(id);
+        if (!employee.equals(employeeWithNewData)) {
+            employee.updateEmployee(employeeWithNewData);
+            employeeRepository.save(employee);
+            kafkaService.sendKafkaMessage("employee_updated", employee);
+            log.info("Employee was updated: " + employee);
         }
         return employee;
     }
 
-    public Employee updateEmployee(UUID id, Employee employee1) {
-        ValidationUtils.validateEmployee(employee1);
-        Employee employee = getEmployeeById(id);
-        employee.updateEmployee(employee1);
-        Employee savedEmployee = employeeRepository.save(employee);
-        kafkaService.sendKafkaMessage("employee_updated", savedEmployee);
-        return savedEmployee;
-    }
-
     public void deleteEmployee(UUID id) {
         Employee employee = getEmployeeById(id);
-        employeeRepository.delete(employee);
-        kafkaService.sendKafkaMessage("employee_deleted", employee);
+        if (employee != null) {
+            employeeRepository.delete(employee);
+            kafkaService.sendKafkaMessage("employee_deleted", employee);
+            log.info("Employee was deleted: " + employee);
+        }
     }
 }

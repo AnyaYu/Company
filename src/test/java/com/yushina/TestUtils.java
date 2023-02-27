@@ -1,5 +1,6 @@
 package com.yushina;
 
+import com.yushina.dto.EmployeeDto;
 import com.yushina.entities.Employee;
 
 import java.time.LocalDate;
@@ -22,5 +23,15 @@ public class TestUtils {
         employee.setBirthday(birthday);
         employee.setHobbies(hobbies);
         return employee;
+    }
+
+    public static EmployeeDto getNewEmployeeDto(boolean withId, String email, String fullName, LocalDate birthday, List<String> hobbies) {
+        EmployeeDto employeeDto = new EmployeeDto();
+        if (withId) employeeDto.setId(ID);
+        employeeDto.setEmail(email);
+        employeeDto.setFullName(fullName);
+        employeeDto.setBirthday(birthday);
+        employeeDto.setHobbies(hobbies);
+        return employeeDto;
     }
 }

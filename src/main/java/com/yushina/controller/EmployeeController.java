@@ -1,5 +1,6 @@
 package com.yushina.controller;
 
+import com.yushina.dto.EmployeeDto;
 import com.yushina.entities.Employee;
 import com.yushina.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,8 @@ public class EmployeeController {
     private EmployeeService employeeService;
 
     @PostMapping
-    public ResponseEntity<Employee> createEmployee(@RequestBody Employee employee) {
-        Employee createdEmployee = employeeService.createEmployee(employee);
+    public ResponseEntity<Employee> createEmployee(@RequestBody EmployeeDto employeeDto) {
+        Employee createdEmployee = employeeService.createEmployee(employeeDto);
         return new ResponseEntity<>(createdEmployee, HttpStatus.CREATED);
     }
 
@@ -35,13 +36,13 @@ public class EmployeeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> updateEmployee(@PathVariable("id") UUID id, @RequestBody Employee employee) {
-        Employee updatedEmployee = employeeService.updateEmployee(id, employee);
+    public ResponseEntity<Object> updateEmployee(@PathVariable("id") UUID id, @RequestBody EmployeeDto employeeDto) {
+        Employee updatedEmployee = employeeService.updateEmployee(id, employeeDto);
         return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteEmployee(@PathVariable("id") UUID id){
+    public ResponseEntity<String> deleteEmployee(@PathVariable("id") UUID id) {
         employeeService.deleteEmployee(id);
         return new ResponseEntity<>(String.format("Employee with id = %s is deleted", id), HttpStatus.NO_CONTENT);
     }
