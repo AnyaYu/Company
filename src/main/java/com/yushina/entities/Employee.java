@@ -1,13 +1,17 @@
 package com.yushina.entities;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 @Entity
 @Table(name = "employees")
+@Data
 public class Employee {
 
     @Id
@@ -26,52 +30,34 @@ public class Employee {
     @ElementCollection
     private List<String> hobbies;
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public LocalDate getBirthday() {
-        return birthday;
-    }
-
-    public void setBirthday(LocalDate birthday) {
-        this.birthday = birthday;
-    }
-
-    public List<String> getHobbies() {
-        return hobbies;
-    }
-
-    public void setHobbies(List<String> hobbies) {
-        this.hobbies = hobbies;
-    }
-
-    public void updateEmployee(Employee employee1) {
-        if (employee1 != null) {
-            this.setBirthday(employee1.getBirthday());
-            this.setEmail(employee1.getEmail());
-            this.setHobbies(employee1.getHobbies());
-            this.setFullName(employee1.getFullName());
+    public void updateEmployee(Employee employeeWithNewInfo) {
+        if (employeeWithNewInfo != null) {
+            this.setBirthday(employeeWithNewInfo.getBirthday());
+            this.setEmail(employeeWithNewInfo.getEmail());
+            this.setHobbies(employeeWithNewInfo.getHobbies());
+            this.setFullName(employeeWithNewInfo.getFullName());
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Employee employee = (Employee) o;
+        return Objects.equals(id, employee.id) && Objects.equals(email, employee.email)
+                && Objects.equals(fullName, employee.fullName) && Objects.equals(birthday, employee.birthday)
+                && areListsEqual(hobbies, employee.hobbies);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, email, fullName, birthday, hobbies);
+    }
+
+    public static boolean areListsEqual(List<?> list1, List<?> list2) {
+        return list1.size() == list2.size() &&
+                IntStream.range(0, list1.size())
+                        .allMatch(i -> Objects.equals(list1.get(i), list2.get(i)));
+
     }
 }
