@@ -2,6 +2,8 @@ package com.yushina.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,6 +30,7 @@ public class Employee {
     private LocalDate birthday;
 
     @ElementCollection
+    @Fetch(FetchMode.JOIN)
     private List<String> hobbies;
 
     public void updateEmployee(Employee employeeWithNewInfo) {
